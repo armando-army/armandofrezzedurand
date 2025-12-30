@@ -40,10 +40,8 @@
       inset:0;
       pointer-events:none;
       z-index:0;
-      background:
-        radial-gradient(circle, rgba(243,243,243,.18) 1px, transparent 1px) 0 0/18px 18px;
-      opacity:.35;
-      mix-blend-mode: normal;
+      background: radial-gradient(circle, rgba(243,243,243,.18) 1px, transparent 1px) 0 0/18px 18px;
+      opacity:.33;
     }
 
     a{color:inherit; text-decoration:none}
@@ -51,7 +49,6 @@
     .wrap{max-width:var(--max); margin:0 auto; padding:0 var(--pad); position:relative; z-index:2;}
     @media (min-width: 1024px){ .wrap{padding:0 var(--pad2);} }
 
-    /* top nav like screenshot */
     header{
       position:fixed;
       top:0; left:0; right:0;
@@ -69,9 +66,9 @@
     }
     .brand{
       display:flex; align-items:center; gap:10px;
-      font-family:var(--sans);
       font-size:14px;
       letter-spacing:.2px;
+      white-space:nowrap;
     }
     .brand .mark{
       width:16px; height:16px; display:grid; grid-template-columns:repeat(2,1fr); gap:3px;
@@ -79,7 +76,7 @@
     .brand .mark span{border:1px solid rgba(243,243,243,.75); width:100%; height:100%;}
     .pillnav{
       display:flex; gap:10px; align-items:center; flex-wrap:wrap;
-      font-family:var(--sans);
+      font-size:14px;
     }
     .pillnav a{
       display:inline-flex;
@@ -88,43 +85,38 @@
       border:1px solid var(--line);
       background:rgba(17,17,17,.55);
       color:rgba(243,243,243,.92);
-      font-size:14px;
     }
     .pillnav a:hover{border-color:rgba(243,243,243,.34)}
     @media (max-width: 860px){
-      .pillnav a{padding:9px 12px; font-size:13px}
+      .pillnav{display:none;}
     }
 
-    /* ===== Overlapping sections (stacking panels) =====
-       Each section is sticky and occupies the viewport;
-       next section scrolls over it.
-    */
+    /* ===== Overlapping sections (stacking panels) ===== */
     main{position:relative; z-index:1;}
-    .stack{
-      padding-top:80px; /* space for fixed header */
-    }
+    .stack{padding-top:80px;}
     section.panel{
       position:sticky;
-      top:80px; /* below header */
+      top:80px;
       min-height: calc(100vh - 80px);
       border-top:1px solid var(--line2);
       background: rgba(11,11,11,.92);
-      /* no rounding */
-      overflow:hidden;
+      overflow:hidden; /* recto */
+    }
+    .panel-inner{padding: 46px 0 56px;}
+    @media (max-width: 860px){ .panel-inner{padding: 38px 0 46px;} }
+
+    .kicker{
+      font-family:var(--mono);
+      font-size:12px;
+      letter-spacing:.10em;
+      color: rgba(243,243,243,.70);
+      margin:0 0 18px;
     }
 
-    /* panel inner layout */
-    .panel-inner{
-      padding: 46px 0 56px;
-    }
-    @media (max-width: 860px){
-      .panel-inner{padding: 38px 0 46px;}
-    }
-
-    /* BIG TITLE */
+    /* HERO */
     .hero-title{
-      font-size: clamp(46px, 6.4vw, 86px);
-      line-height: 1.02;
+      font-size: clamp(46px, 6.4vw, 88px);
+      line-height: 1.01;
       letter-spacing: -0.02em;
       margin: 0;
       font-weight: 500;
@@ -133,25 +125,22 @@
       margin-top:14px;
       font-size: clamp(16px, 1.6vw, 20px);
       color: var(--muted);
-      max-width: 84ch;
+      max-width: 92ch;
     }
-    .hero-subline a{border-bottom:1px solid rgba(243,243,243,.28)}
-    .hero-subline a:hover{border-bottom-color: rgba(255,106,0,.7); color: var(--fg);}
+    .hero-subline a{
+      border-bottom:1px solid rgba(243,243,243,.28);
+      padding-bottom:2px;
+    }
+    .hero-subline a:hover{border-bottom-color: rgba(255,106,0,.7);}
 
-    /* hero ascii area */
     .hero-ascii{
-      position:absolute;
-      inset:0;
+      position:absolute; inset:0;
       z-index:1;
       pointer-events:none;
       opacity:.92;
     }
-    .hero-content{
-      position:relative;
-      z-index:2;
-    }
+    .hero-content{position:relative; z-index:2;}
 
-    /* Featured image block */
     .feature{
       margin-top: 28px;
       border:1px solid var(--line2);
@@ -159,10 +148,9 @@
     }
     .feature img{
       width:100%;
-      height:min(62vh, 760px);
+      height:min(60vh, 740px);
       object-fit:cover;
       display:block;
-      filter:contrast(1.02) saturate(.98);
     }
     .feature-cap{
       display:flex;
@@ -176,25 +164,14 @@
     }
     .feature-cap b{color:rgba(243,243,243,.9); font-weight:600}
 
-    /* section headings */
-    .kicker{
-      font-family:var(--mono);
-      font-size:12px;
-      letter-spacing:.10em;
-      color: rgba(243,243,243,.70);
-      margin:0 0 18px;
-    }
-
-    /* works grid */
+    /* WORKS GRID (más “editorial”, recto) */
     .works{
       display:grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(12, 1fr);
       gap:14px;
     }
-    @media (max-width: 980px){ .works{grid-template-columns: repeat(2, 1fr);} }
-    @media (max-width: 560px){ .works{grid-template-columns: 1fr;} }
-
     .work{
+      grid-column: span 4;
       border:1px solid var(--line2);
       background: rgba(17,17,17,.55);
       cursor:pointer;
@@ -203,7 +180,7 @@
     .work:hover{border-color: rgba(255,106,0,.55); transform: translateY(-2px);}
     .work img{
       width:100%;
-      height:240px;
+      height:250px;
       object-fit:cover;
       display:block;
     }
@@ -217,17 +194,20 @@
     }
     .work .meta b{color:rgba(243,243,243,.92); font-weight:600}
 
-    /* statement */
+    @media (max-width: 980px){ .work{grid-column: span 6;} }
+    @media (max-width: 560px){ .work{grid-column: 1 / -1;} }
+
+    /* STATEMENT */
     .statement{
-      max-width: 92ch;
+      max-width: 96ch;
       font-size: 18px;
-      line-height: 1.55;
+      line-height: 1.6;
       color: rgba(243,243,243,.88);
     }
     .statement p{margin:0 0 14px}
     .statement p:last-child{margin:0}
 
-    /* PDF + contact blocks */
+    /* PDF + CONTACT */
     .cols{
       display:grid;
       grid-template-columns: 1fr 1fr;
@@ -254,9 +234,8 @@
       margin:0;
       color:var(--muted);
       font-size:14px;
-      line-height:1.45;
+      line-height:1.5;
     }
-
     .btn{
       display:inline-flex;
       align-items:center;
@@ -267,7 +246,6 @@
       background: rgba(255,106,0,.10);
       font-family:var(--mono);
       font-size:13px;
-      letter-spacing:.02em;
     }
     .btn:hover{border-color: rgba(255,106,0,.85);}
     .arrow{color:var(--accent);}
@@ -367,7 +345,6 @@
         <a href="#statement">Learn more →</a>
       </div>
 
-      <!-- obra destacada (usa tu imagen 1) -->
       <div class="feature" style="margin-top:34px;">
         <img src="armando-frezze-durand-1.jpeg" alt="Obra destacada" loading="eager" />
         <div class="feature-cap">
@@ -378,7 +355,7 @@
     </div>
   </section>
 
-  <!-- PANEL 2: WORKS -->
+  <!-- PANEL 2: WORKS (GRILLA) -->
   <section class="panel" id="works" style="z-index:9;">
     <div class="wrap panel-inner">
       <p class="kicker">[works — selección (máximo 6)]</p>
@@ -417,7 +394,7 @@
     </div>
   </section>
 
-  <!-- PANEL 3: STATEMENT -->
+  <!-- PANEL 3: STATEMENT (TEXTO COMPLETO) -->
   <section class="panel" id="statement" style="z-index:8;">
     <div class="wrap panel-inner">
       <p class="kicker">[statement]</p>
@@ -425,20 +402,30 @@
       <div class="statement">
         <p>
           La práctica de Armando Frezze Durand se construye en el cruce entre la imagen, la tecnología y la materialidad.
-          Su trabajo parte de la fotografía y el audiovisual —del laboratorio analógico al entorno digital— para desplazarse
-          hacia procesos de escaneo, manipulación y traducción de imágenes en cuerpos físicos. La escultura aparece aquí
-          no como punto de partida, sino como consecuencia de un recorrido que atraviesa lo online y lo offline, lo virtual y lo tangible.
+          Su trabajo parte de la fotografía y el audiovisual —del laboratorio analógico al entorno digital— para desplazarse hacia procesos
+          de escaneo, manipulación y traducción de imágenes en cuerpos físicos. La escultura aparece aquí no como punto de partida,
+          sino como consecuencia de un recorrido que atraviesa lo online y lo offline, lo virtual y lo tangible.
         </p>
+
         <p>
+          En este tránsito, el cuerpo humano —particularmente el cuerpo masculino— funciona como una operación de desplazamiento:
+          cuerpos e imágenes provenientes del flujo cotidiano, presencias sin jerarquía aparente, son traducidos a materia con la intención de persistir en el tiempo.
           Esta materialización introduce una pregunta incómoda: ¿qué cuerpos, qué imágenes y qué relatos merecen ser conservados?
-          Al otorgar duración y peso escultórico a figuras sin jerarquía aparente, la obra tensiona nociones de relevancia, valor e idealización,
-          y expone el carácter arbitrario de aquello que una cultura decide monumentalizar o reproducir. En ese gesto, la masculinidad aparece como materia de trabajo:
-          no como afirmación, sino como algo que la obra interpela.
+          Al otorgar duración y peso escultórico a figuras sin jerarquía evidente, la obra tensiona las nociones de relevancia, valor e idealización,
+          y expone el carácter arbitrario de aquello que una cultura decide monumentalizar, reproducir o multiplicar.
+          En ese gesto, la masculinidad aparece como materia de trabajo: no como afirmación, sino como algo que la obra interpela.
         </p>
+
         <p>
-          La repetición opera como método: un mismo individuo reaparece a lo largo del tiempo bajo distintas formas —foto, video, relieve, escultura, proyección—.
-          Esta insistencia no busca fijar un ícono, sino erosionarlo; volver visible cómo el deseo, la técnica y el archivo reescriben una figura una y otra vez.
-          Entre imagen y materia, la práctica no busca cerrar sentidos, sino habilitar fricción frente al desplazamiento constante y el consumo infinito de imágenes.
+          La repetición opera en la obra como un método. Un mismo cuerpo, una misma imagen o un mismo individuo reaparece a lo largo del tiempo bajo distintas formas
+          —fotografía, video, escultura, relieve—, desplazado y reescrito en cada nueva traducción material.
+          Esta insistencia no busca fijar un ícono, sino erosionarlo: volver a interrogar su vigencia, su carga simbólica y su relación con el tiempo.
+          La repetición no garantiza permanencia; la interpela.
+        </p>
+
+        <p>
+          Entre imagen y materia, la práctica de Frezze Durand no busca cerrar sentidos, sino habilitar preguntas sobre qué conservamos, por qué lo hacemos
+          y qué dejamos caer en el proceso, actuando como un gesto de fricción frente a la lógica del desplazamiento constante y el consumo infinito de imágenes.
         </p>
       </div>
     </div>
@@ -453,10 +440,12 @@
         <div class="box">
           <h3>Portfolio</h3>
           <p>Descargá el PDF con selección de obra física y proyectos audiovisuales.</p>
-          <!-- Subí el archivo al repo como portfolio.pdf o cambiá el nombre acá -->
           <a class="btn" href="portfolio.pdf" download>
             Descargar PDF <span class="arrow">→</span>
           </a>
+          <p style="margin-top:10px; font-family:var(--mono); font-size:12px; color:var(--muted2);">
+            (subí el archivo como <b>portfolio.pdf</b> al root del repo)
+          </p>
         </div>
 
         <div class="box" id="contact">
@@ -465,7 +454,9 @@
           <p style="margin-top:12px;">
             Email: <a href="mailto:armando@dooplerstudio.com.ar">armando@dooplerstudio.com.ar</a><br/>
             Tel: <a href="tel:+5491165598444">+54 9 11 6559 8444</a><br/>
-            Site: <a href="https://armando-army.github.io/armandofrezzedurand/" target="_blank" rel="noreferrer">armando-army.github.io/armandofrezzedurand</a>
+            Site: <a href="https://armando-army.github.io/armandofrezzedurand/" target="_blank" rel="noreferrer">
+              armando-army.github.io/armandofrezzedurand
+            </a>
           </p>
         </div>
       </div>
@@ -476,7 +467,7 @@
 
 <footer>
   <div class="wrap">
-    © <span id="year"></span> Armando Frezze Durand · palette: black / white / orange · stacking panels
+    © <span id="year"></span> Armando Frezze Durand · black / white / orange · stacking panels
   </div>
 </footer>
 
@@ -520,7 +511,7 @@
   window.addEventListener("keydown", (e) => { if(e.key === "Escape") closeModal(); });
 </script>
 
-<!-- HERO ASCII OBJ (FRANCO_LowPoly.obj rotating) -->
+<!-- HERO ASCII OBJ -->
 <script type="module">
   import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
   import { OBJLoader } from "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/OBJLoader.js";
@@ -546,7 +537,7 @@
     inset:"0",
     width:"100%",
     height:"100%",
-    color:"rgba(243,243,243,.85)",
+    color:"rgba(243,243,243,.82)",
     backgroundColor:"transparent",
     fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
     fontSize:"10px",
@@ -604,7 +595,6 @@
       obj.scale.setScalar(2.25 / maxDim);
 
       obj.position.y += 0.05;
-
       group.add(obj);
     },
     undefined,
@@ -624,12 +614,10 @@
 
   function animate(){
     requestAnimationFrame(animate);
-
     if(loaded){
       group.rotation.y += 0.004;
       group.rotation.x = -0.08;
     }
-
     effect.render(scene, camera);
   }
   animate();
