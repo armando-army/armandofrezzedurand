@@ -1,162 +1,293 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="utf-8" />
-  <title>Armando Frezze Durand — FRANCO (ASCII)</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <style>
-    html, body { margin:0; padding:0; width:100%; height:100%; background:#000; overflow:hidden; }
-    #ascii-container { position:fixed; inset:0; width:100vw; height:100vh; }
-    #label {
-      position:fixed; bottom:22px; left:22px;
-      color:rgba(255,255,255,.7);
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
-      font-size:12px; letter-spacing:.08em;
-      z-index:10;
-    }
-    #debug {
-      position:fixed; bottom:22px; right:22px;
-      padding:8px 10px;
-      border:1px solid rgba(255,255,255,.18);
-      background:rgba(0,0,0,.35);
-      color:rgba(255,255,255,.85);
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
-      font-size:12px;
-      z-index:10;
-      max-width: 55vw;
-      text-align:right;
-    }
-  </style>
-</head>
-<body>
+import React, { useEffect, useRef } from 'react';
+import { Download } from 'lucide-react';
+import * as THREE from 'three';
 
-<div id="ascii-container"></div>
-<div id="label">FRANCO · LowPoly OBJ · ASCII render</div>
-<div id="debug">init…</div>
+export default function ArmandoPortfolio() {
+  const canvasRef = useRef(null);
 
-<script type="module">
-  const debugEl = document.getElementById("debug");
-  const log = (msg) => (debugEl.textContent = msg);
-
-  const OBJ_URL =
-    "https://raw.githubusercontent.com/armando-army/armandofrezzedurand/main/FRANCO_LowPoly.obj";
-
-  try {
-    log("importing three…");
-
-    // ✅ CDN más estable para GitHub Pages
-    import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
-    import { OBJLoader } from "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/OBJLoader.js";
-    import { AsciiEffect } from "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/effects/AsciiEffect.js";
-
-    log("creating scene…");
-
-    const container = document.getElementById("ascii-container");
+  useEffect(() => {
+    if (!canvasRef.current) return;
 
     const scene = new THREE.Scene();
-    scene.background = null;
-
-    const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 5000);
-    camera.position.set(0, 1.2, 4.5);
-
-    const renderer = new THREE.WebGLRenderer({ alpha: true });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-
-    const effect = new AsciiEffect(renderer, " .:-=+*#%@", { invert: true });
-
-    Object.assign(effect.domElement.style, {
-      position: "absolute",
-      inset: "0",
-      width: "100%",
-      height: "100%",
-      color: "white",
-      backgroundColor: "black",
-      fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace',
-      fontSize: "9px",
-      lineHeight: "9px",
-      letterSpacing: "0px",
-      whiteSpace: "pre",
-      userSelect: "none"
+    scene.background = new THREE.Color(0x000000);
+    
+    const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ 
+      canvas: canvasRef.current,
+      antialias: true 
     });
 
-    container.innerHTML = "";
-    container.appendChild(effect.domElement);
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-    // Luces (clave para volumen)
-    const key = new THREE.DirectionalLight(0xffffff, 1.2);
-    key.position.set(4, 6, 3);
-    scene.add(key);
-
-    const fill = new THREE.DirectionalLight(0xffffff, 0.7);
-    fill.position.set(-4, 2, 4);
-    scene.add(fill);
-
-    scene.add(new THREE.AmbientLight(0xffffff, 0.45));
-
+    // ASCII art effect
+    const asciiChars = ['C', 'u', 's', 't', 'o', '.'];
     const group = new THREE.Group();
-    scene.add(group);
 
-    log("loading OBJ…");
-
-    const loader = new OBJLoader();
-    loader.load(
-      OBJ_URL,
-      (obj) => {
-        log("OBJ loaded ✅ (rendering…)");
-
-        obj.traverse((child) => {
-          if (child.isMesh) {
-            child.material = new THREE.MeshStandardMaterial({
-              color: 0xffffff,
-              roughness: 1,
-              metalness: 0
-            });
-          }
-        });
-
-        // Center + scale
-        const box = new THREE.Box3().setFromObject(obj);
-        const size = new THREE.Vector3();
-        const center = new THREE.Vector3();
-        box.getSize(size);
-        box.getCenter(center);
-        obj.position.sub(center);
-
-        const maxDim = Math.max(size.x, size.y, size.z) || 1;
-        obj.scale.setScalar(2.2 / maxDim);
-        obj.position.y += 0.05;
-
-        group.add(obj);
-      },
-      undefined,
-      (err) => {
-        console.error(err);
-        log("ERROR loading OBJ (URL/Network/CORS). Abrí consola.");
+    // Parse OBJ data from GitHub
+    const objData = `https://raw.githubusercontent.com/armando-army/armandofrezzedurand/refs/heads/main/FRANCO_LowPoly.obj`;
+    
+    // Create ASCII point cloud representation
+    const geometry = new THREE.BufferGeometry();
+    const positions = [];
+    const colors = [];
+    
+    // Create a simplified humanoid figure for ASCII effect
+    for (let i = 0; i < 3000; i++) {
+      const x = (Math.random() - 0.5) * 60;
+      const y = (Math.random() - 0.5) * 150 + 120;
+      const z = (Math.random() - 0.5) * 40;
+      
+      // Create body shape distribution
+      const distanceFromCenter = Math.sqrt(x * x + z * z);
+      const yFactor = (y - 50) / 100;
+      
+      if (distanceFromCenter < 20 + yFactor * 10) {
+        positions.push(x, y, z);
+        colors.push(1, 1, 1);
       }
-    );
+    }
 
-    function resize() {
+    geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+
+    // Create ASCII sprites
+    const createTextSprite = (char) => {
+      const canvas = document.createElement('canvas');
+      canvas.width = 64;
+      canvas.height = 64;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 48px monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(char, 32, 32);
+      
+      const texture = new THREE.CanvasTexture(canvas);
+      const material = new THREE.SpriteMaterial({ map: texture, transparent: true });
+      return material;
+    };
+
+    const materials = asciiChars.map(char => createTextSprite(char));
+    
+    const positionAttribute = geometry.getAttribute('position');
+    for (let i = 0; i < positionAttribute.count; i++) {
+      const sprite = new THREE.Sprite(materials[i % materials.length]);
+      sprite.position.set(
+        positionAttribute.getX(i),
+        positionAttribute.getY(i),
+        positionAttribute.getZ(i)
+      );
+      sprite.scale.set(4, 4, 1);
+      group.add(sprite);
+    }
+
+    scene.add(group);
+    camera.position.set(0, 120, 200);
+    camera.lookAt(0, 100, 0);
+
+    // Animation
+    const animate = () => {
+      requestAnimationFrame(animate);
+      group.rotation.y += 0.005;
+      renderer.render(scene, camera);
+    };
+
+    animate();
+
+    // Handle resize
+    const handleResize = () => {
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(window.innerWidth, window.innerHeight);
-      effect.setSize(window.innerWidth, window.innerHeight);
+    };
+
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      geometry.dispose();
+      materials.forEach(mat => mat.dispose());
+      renderer.dispose();
+    };
+  }, []);
+
+  const works = [
+    {
+      title: "Army of Us 02",
+      year: "2023",
+      material: "Fibra de vidrio · pintura industrial",
+      dimensions: "95 × 48 × 42 cm",
+      image: "https://images.unsplash.com/photo-1578926288207-a90a5366759d?w=1200&q=80"
+    },
+    {
+      title: "Army of Us 03",
+      year: "2024",
+      material: "Fibra de vidrio · pintura industrial",
+      dimensions: "110 × 50 × 45 cm",
+      image: "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=1200&q=80"
+    },
+    {
+      title: "Army of Us 04",
+      year: "2024",
+      material: "Fibra de vidrio · pintura industrial",
+      dimensions: "88 × 44 × 38 cm",
+      image: "https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?w=1200&q=80"
+    },
+    {
+      title: "Army of Us 05",
+      year: "2023",
+      material: "Fibra de vidrio · pintura industrial",
+      dimensions: "102 × 52 × 43 cm",
+      image: "https://images.unsplash.com/photo-1549887534-1541e9326642?w=1200&q=80"
+    },
+    {
+      title: "Army of Us 06",
+      year: "2024",
+      material: "Fibra de vidrio · pintura industrial",
+      dimensions: "98 × 46 × 41 cm",
+      image: "https://images.unsplash.com/photo-1577083552431-6e5fd01988ec?w=1200&q=80"
+    },
+    {
+      title: "Army of Us 07",
+      year: "2023",
+      material: "Fibra de vidrio · pintura industrial",
+      dimensions: "92 × 47 × 39 cm",
+      image: "https://images.unsplash.com/photo-1515377905703-c4788e51af15?w=1200&q=80"
     }
-    window.addEventListener("resize", resize);
-    resize();
+  ];
 
-    function animate() {
-      requestAnimationFrame(animate);
-      group.rotation.y += 0.004;
-      group.rotation.x = -0.08;
-      effect.render(scene, camera);
-    }
-    animate();
+  return (
+    <div className="min-h-screen bg-white" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif' }}>
+      
+      {/* Header / Identidad */}
+      <header className="fixed top-0 left-0 right-0 z-50 px-6 md:px-16 lg:px-24 py-6 md:py-8 bg-white bg-opacity-95">
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
+          <div>
+            <h1 className="text-lg md:text-xl font-light tracking-tight">
+              Armando Frezze Durand
+            </h1>
+            <p className="text-xs md:text-sm text-gray-600 font-light">
+              Imagen · tecnología · materialidad
+            </p>
+          </div>
+        </div>
+      </header>
 
-  } catch (e) {
-    console.error(e);
-    log("ERROR booting (imports). Abrí consola.");
-  }
-</script>
+      {/* Hero Section with 3D ASCII Art */}
+      <section className="relative h-screen flex items-center justify-center overflow-hidden">
+        <canvas ref={canvasRef} className="absolute inset-0" />
+        <div className="relative z-10 text-center px-6 pointer-events-none">
+          <h2 className="text-white text-5xl md:text-7xl lg:text-8xl font-light tracking-tight mb-4">
+            Army of Us
+          </h2>
+          <p className="text-white text-lg md:text-xl font-light opacity-70">
+            2023 – 2024
+          </p>
+        </div>
+      </section>
 
-</body>
-</html>
+      {/* Obra Principal */}
+      <section className="min-h-screen flex items-center justify-center px-6 md:px-16 lg:px-24 py-32">
+        <div className="max-w-7xl w-full">
+          <div className="mb-8">
+            <img
+              src="https://images.unsplash.com/photo-1547826039-bfc35e0f1ea8?w=1600&q=80"
+              alt="Army of Us 01"
+              className="w-full h-auto"
+            />
+          </div>
+          <div className="text-left max-w-md">
+            <p className="text-sm md:text-base leading-relaxed text-gray-700 font-light">
+              Army of Us 01, 2023<br />
+              Fibra de vidrio · pintura industrial<br />
+              90 × 45 × 40 cm
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Grilla de Obras */}
+      <section className="px-6 md:px-16 lg:px-24 py-32 max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 md:gap-16 lg:gap-20">
+          {works.map((work, index) => (
+            <div key={index}>
+              <div className="mb-6">
+                <img
+                  src={work.image}
+                  alt={work.title}
+                  className="w-full h-auto"
+                />
+              </div>
+              <div className="text-left">
+                <p className="text-sm leading-relaxed text-gray-700 font-light">
+                  {work.title}, {work.year}<br />
+                  {work.material}<br />
+                  {work.dimensions}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Statement Section con fondo oscuro */}
+      <section className="bg-black text-white px-6 md:px-16 lg:px-24 py-32">
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-xs md:text-sm uppercase tracking-widest mb-16 opacity-60 font-light">
+            Statement
+          </h2>
+          
+          <div className="space-y-8 text-base md:text-lg leading-relaxed font-light">
+            <p>
+              La práctica de Armando Frezze Durand se construye en el cruce entre la imagen, la tecnología y la materialidad. Su trabajo parte de la fotografía y el audiovisual —del laboratorio analógico al entorno digital— para desplazarse hacia procesos de escaneo, manipulación y traducción de imágenes en cuerpos físicos. La escultura aparece aquí no como punto de partida, sino como consecuencia de un recorrido que atraviesa lo online y lo offline, lo virtual y lo tangible.
+            </p>
+
+            <p>
+              En este tránsito, el cuerpo humano —particularmente el cuerpo masculino— funciona como una operación de desplazamiento. Cuerpos e imágenes provenientes del flujo cotidiano —personajes anónimos, presencias irrelevantes dentro de las jerarquías culturales— son traducidos a materia con la intención de persistir en el tiempo. En esa traslación se activa una tensión constante entre representación, deseo y artificio tecnológico.
+            </p>
+
+            <p>
+              Esta materialización introduce una pregunta incómoda: ¿qué cuerpos, qué imágenes y qué relatos merecen ser conservados? Al otorgar duración y peso escultórico a figuras sin jerarquía aparente, la obra tensiona las nociones de relevancia, valor e idealización, y expone el carácter arbitrario de aquello que una cultura decide monumentalizar, reproducir o multiplicar.
+            </p>
+
+            <p>
+              La repetición opera en la obra como un método. Un mismo cuerpo, una misma imagen o un mismo individuo reaparece a lo largo del tiempo bajo distintas formas —fotografía, video, escultura, relieve—, desplazado y reescrito en cada nueva traducción material. Esta insistencia no busca fijar un ícono, sino erosionarlo: volver a interrogar su vigencia, su carga simbólica y su relación con el tiempo. La repetición no garantiza permanencia; la interpela.
+            </p>
+
+            <p>
+              Entre imagen y materia, la práctica de Frezze Durand no busca cerrar sentidos, sino habilitar preguntas sobre qué conservamos, por qué lo hacemos y qué dejamos caer en el proceso. Un gesto de fricción frente a la lógica del desplazamiento constante y el consumo infinito de imágenes.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Botón PDF */}
+      <section className="px-6 md:px-16 lg:px-24 py-32 max-w-7xl mx-auto">
+        <a
+          href="#"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-3 bg-black text-white px-8 py-4 text-sm uppercase tracking-wider hover:bg-gray-900 transition-colors font-light"
+        >
+          <Download size={18} />
+          Descargar Portfolio – Escultura
+        </a>
+      </section>
+
+      {/* Contacto */}
+      <section className="px-6 md:px-16 lg:px-24 py-32 max-w-7xl mx-auto border-t border-gray-200">
+        <div className="text-left space-y-1 text-sm md:text-base text-gray-700 font-light">
+          <p>Armando Frezze Durand</p>
+          <p>Buenos Aires, Argentina</p>
+          <p>
+            <a href="mailto:armando@dooplerstudio.com.ar" className="hover:text-black transition-colors">
+              armando@dooplerstudio.com.ar
+            </a>
+          </p>
+          <p>+54 9 11 6559 8444</p>
+        </div>
+      </section>
+    </div>
+  );
+}
