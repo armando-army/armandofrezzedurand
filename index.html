@@ -4,33 +4,27 @@
   <meta charset="utf-8" />
   <title>Armando Frezze Durand — FRANCO (ASCII)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-
   <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      width: 100%;
-      height: 100%;
-      background: black;
-      overflow: hidden;
-    }
-
-    #ascii-container {
-      position: fixed;
-      inset: 0;
-      width: 100vw;
-      height: 100vh;
-    }
-
-    /* overlay discreto */
+    html, body { margin:0; padding:0; width:100%; height:100%; background:#000; overflow:hidden; }
+    #ascii-container { position:fixed; inset:0; width:100vw; height:100vh; }
     #label {
-      position: fixed;
-      bottom: 24px;
-      left: 24px;
-      color: rgba(255,255,255,0.7);
+      position:fixed; bottom:22px; left:22px;
+      color:rgba(255,255,255,.7);
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
-      font-size: 12px;
-      letter-spacing: 0.08em;
+      font-size:12px; letter-spacing:.08em;
+      z-index:10;
+    }
+    #debug {
+      position:fixed; bottom:22px; right:22px;
+      padding:8px 10px;
+      border:1px solid rgba(255,255,255,.18);
+      background:rgba(0,0,0,.35);
+      color:rgba(255,255,255,.85);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size:12px;
+      z-index:10;
+      max-width: 55vw;
+      text-align:right;
     }
   </style>
 </head>
@@ -38,142 +32,130 @@
 
 <div id="ascii-container"></div>
 <div id="label">FRANCO · LowPoly OBJ · ASCII render</div>
+<div id="debug">init…</div>
 
 <script type="module">
-  import * as THREE from "https://unpkg.com/three@0.160.0/build/three.module.js";
-  import { OBJLoader } from "https://unpkg.com/three@0.160.0/examples/jsm/loaders/OBJLoader.js";
-  import { AsciiEffect } from "https://unpkg.com/three@0.160.0/examples/jsm/effects/AsciiEffect.js";
-
-  const container = document.getElementById("ascii-container");
-
-  /* ===============================
-     SCENE / CAMERA / RENDERER
-  =============================== */
-
-  const scene = new THREE.Scene();
-  scene.background = null;
-
-  const camera = new THREE.PerspectiveCamera(
-    55,
-    window.innerWidth / window.innerHeight,
-    0.1,
-    5000
-  );
-  camera.position.set(0, 1.2, 4.5);
-
-  const renderer = new THREE.WebGLRenderer({ alpha: true });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-
-  const effect = new AsciiEffect(
-    renderer,
-    " .:-=+*#%@",
-    { invert: true }
-  );
-
-  Object.assign(effect.domElement.style, {
-    position: "absolute",
-    inset: "0",
-    width: "100%",
-    height: "100%",
-    color: "white",
-    backgroundColor: "black",
-    fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace',
-    fontSize: "9px",
-    lineHeight: "9px",
-    letterSpacing: "0px",
-    whiteSpace: "pre",
-    userSelect: "none"
-  });
-
-  container.appendChild(effect.domElement);
-
-  /* ===============================
-     LIGHTS (CLAVE PARA ASCII)
-  =============================== */
-
-  const key = new THREE.DirectionalLight(0xffffff, 1.2);
-  key.position.set(4, 6, 3);
-  scene.add(key);
-
-  const fill = new THREE.DirectionalLight(0xffffff, 0.7);
-  fill.position.set(-4, 2, 4);
-  scene.add(fill);
-
-  scene.add(new THREE.AmbientLight(0xffffff, 0.45));
-
-  /* ===============================
-     LOAD OBJ
-  =============================== */
-
-  const group = new THREE.Group();
-  scene.add(group);
+  const debugEl = document.getElementById("debug");
+  const log = (msg) => (debugEl.textContent = msg);
 
   const OBJ_URL =
     "https://raw.githubusercontent.com/armando-army/armandofrezzedurand/main/FRANCO_LowPoly.obj";
 
-  const loader = new OBJLoader();
+  try {
+    log("importing three…");
 
-  loader.load(
-    OBJ_URL,
-    (obj) => {
-      obj.traverse((child) => {
-        if (child.isMesh) {
-          child.material = new THREE.MeshStandardMaterial({
-            color: 0xffffff,
-            roughness: 1,
-            metalness: 0
-          });
-        }
-      });
+    // ✅ CDN más estable para GitHub Pages
+    import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
+    import { OBJLoader } from "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/OBJLoader.js";
+    import { AsciiEffect } from "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/effects/AsciiEffect.js";
 
-      // centrar
-      const box = new THREE.Box3().setFromObject(obj);
-      const size = new THREE.Vector3();
-      const center = new THREE.Vector3();
-      box.getSize(size);
-      box.getCenter(center);
-      obj.position.sub(center);
+    log("creating scene…");
 
-      // escalar automático
-      const maxDim = Math.max(size.x, size.y, size.z) || 1;
-      obj.scale.setScalar(2.2 / maxDim);
+    const container = document.getElementById("ascii-container");
 
-      obj.position.y += 0.05;
+    const scene = new THREE.Scene();
+    scene.background = null;
 
-      group.add(obj);
-    },
-    undefined,
-    (err) => {
-      console.error("Error cargando OBJ:", err);
+    const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 5000);
+    camera.position.set(0, 1.2, 4.5);
+
+    const renderer = new THREE.WebGLRenderer({ alpha: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+    const effect = new AsciiEffect(renderer, " .:-=+*#%@", { invert: true });
+
+    Object.assign(effect.domElement.style, {
+      position: "absolute",
+      inset: "0",
+      width: "100%",
+      height: "100%",
+      color: "white",
+      backgroundColor: "black",
+      fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace',
+      fontSize: "9px",
+      lineHeight: "9px",
+      letterSpacing: "0px",
+      whiteSpace: "pre",
+      userSelect: "none"
+    });
+
+    container.innerHTML = "";
+    container.appendChild(effect.domElement);
+
+    // Luces (clave para volumen)
+    const key = new THREE.DirectionalLight(0xffffff, 1.2);
+    key.position.set(4, 6, 3);
+    scene.add(key);
+
+    const fill = new THREE.DirectionalLight(0xffffff, 0.7);
+    fill.position.set(-4, 2, 4);
+    scene.add(fill);
+
+    scene.add(new THREE.AmbientLight(0xffffff, 0.45));
+
+    const group = new THREE.Group();
+    scene.add(group);
+
+    log("loading OBJ…");
+
+    const loader = new OBJLoader();
+    loader.load(
+      OBJ_URL,
+      (obj) => {
+        log("OBJ loaded ✅ (rendering…)");
+
+        obj.traverse((child) => {
+          if (child.isMesh) {
+            child.material = new THREE.MeshStandardMaterial({
+              color: 0xffffff,
+              roughness: 1,
+              metalness: 0
+            });
+          }
+        });
+
+        // Center + scale
+        const box = new THREE.Box3().setFromObject(obj);
+        const size = new THREE.Vector3();
+        const center = new THREE.Vector3();
+        box.getSize(size);
+        box.getCenter(center);
+        obj.position.sub(center);
+
+        const maxDim = Math.max(size.x, size.y, size.z) || 1;
+        obj.scale.setScalar(2.2 / maxDim);
+        obj.position.y += 0.05;
+
+        group.add(obj);
+      },
+      undefined,
+      (err) => {
+        console.error(err);
+        log("ERROR loading OBJ (URL/Network/CORS). Abrí consola.");
+      }
+    );
+
+    function resize() {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      effect.setSize(window.innerWidth, window.innerHeight);
     }
-  );
+    window.addEventListener("resize", resize);
+    resize();
 
-  /* ===============================
-     RESIZE
-  =============================== */
+    function animate() {
+      requestAnimationFrame(animate);
+      group.rotation.y += 0.004;
+      group.rotation.x = -0.08;
+      effect.render(scene, camera);
+    }
+    animate();
 
-  function resize() {
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    effect.setSize(window.innerWidth, window.innerHeight);
+  } catch (e) {
+    console.error(e);
+    log("ERROR booting (imports). Abrí consola.");
   }
-
-  window.addEventListener("resize", resize);
-  resize();
-
-  /* ===============================
-     ANIMATION
-  =============================== */
-
-  function animate() {
-    requestAnimationFrame(animate);
-    group.rotation.y += 0.004;
-    group.rotation.x = -0.08;
-    effect.render(scene, camera);
-  }
-
-  animate();
 </script>
 
 </body>
