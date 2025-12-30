@@ -1,353 +1,389 @@
-<!doctype html>
-<html lang="es">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Armando Frezze Durand</title>
-  <meta name="description" content="Imagen · tecnología · materialidad" />
+import React, { useEffect, useRef } from "react";
+import { Download } from "lucide-react";
+import * as THREE from "three";
+import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader.js";
+import { AsciiEffect } from "three/examples/jsm/effects/AsciiEffect.js";
 
-  <style>
-    :root{
-      --bg:#0b0b0b;
-      --fg:#f2f2f2;
-      --muted:rgba(242,242,242,.65);
-      --hair:rgba(242,242,242,.12);
-      --max:1100px;
-      --pad:22px;
-    }
+export default function ArmandoPortfolio() {
+  const asciiMountRef = useRef(null);
 
-    /* Reset-ish */
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{
-      margin:0;
-      background:var(--bg);
-      color:var(--fg);
-      font: 15px/1.55 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
-      letter-spacing: .01em;
-    }
-    a{
-      color:var(--fg);
-      text-decoration:none;
-      border-bottom:1px solid var(--hair);
-    }
-    a:hover{border-bottom-color:var(--fg)}
-    img{max-width:100%;display:block}
+  useEffect(() => {
+    if (!asciiMountRef.current) return;
 
-    /* Layout */
-    .wrap{max-width:var(--max); margin:0 auto; padding:0 var(--pad)}
-    .topbar{
-      position:sticky; top:0; z-index:50;
-      background: linear-gradient(to bottom, rgba(11,11,11,.92), rgba(11,11,11,.65));
-      backdrop-filter: blur(10px);
-      border-bottom:1px solid var(--hair);
-    }
-    .topbar .inner{
-      display:flex; align-items:center; justify-content:space-between;
-      gap:16px;
-      padding:14px var(--pad);
-      max-width:var(--max);
-      margin:0 auto;
-    }
-    .brand{
-      display:flex; flex-direction:column; gap:2px;
-      min-width: 220px;
-    }
-    .brand .name{font-size:14px; letter-spacing:.06em; text-transform:uppercase}
-    .brand .tag{font-size:12px; color:var(--muted)}
-    nav{
-      display:flex; gap:16px; flex-wrap:wrap; justify-content:flex-end;
-      font-size:12px; letter-spacing:.06em; text-transform:uppercase;
-    }
-    nav a{border-bottom:1px solid transparent; padding-bottom:2px}
-    nav a:hover{border-bottom-color:var(--fg)}
+    // 1) URL del OBJ (RAW de GitHub)
+    // Ejemplo:
+    // https://raw.githubusercontent.com/TU_USUARIO/TU_REPO/main/FRANCO_LowPoly.obj
+    const OBJ_URL =
+      "https://raw.githubusercontent.com/TU_USUARIO/TU_REPO/main/FRANCO_LowPoly.obj";
 
-    /* Sections */
-    section{padding:72px 0; border-bottom:1px solid var(--hair)}
-    h2{
-      margin:0 0 18px 0;
-      font-size:12px; letter-spacing:.10em; text-transform:uppercase;
-      color:var(--muted);
-      font-weight:500;
-    }
+    // Scene / Camera
+    const scene = new THREE.Scene();
+    scene.background = null;
 
-    /* Hero artwork */
-    .hero{
-      padding-top:46px;
-    }
-    .hero-grid{
-      display:grid;
-      grid-template-columns: 1.35fr .65fr;
-      gap:24px;
-      align-items:start;
-    }
-    .hero-media{
-      border:1px solid var(--hair);
-      border-radius:14px;
-      overflow:hidden;
-      background:#0f0f0f;
-    }
-    .hero-media img{
-      width:100%;
-      height: auto;
-    }
-    .meta{
-      border:1px solid var(--hair);
-      border-radius:14px;
-      padding:18px;
-    }
-    .meta .title{
-      font-size:16px;
-      margin:0 0 10px 0;
-      font-weight:500;
-    }
-    .meta .lines{color:var(--muted); font-size:13px}
-    .meta .lines div{margin:4px 0}
-    .meta .cta{margin-top:16px}
-    .pill{
-      display:inline-flex; align-items:center; gap:10px;
-      padding:10px 12px;
-      border:1px solid var(--hair);
-      border-radius:999px;
-      font-size:12px; letter-spacing:.06em; text-transform:uppercase;
-    }
-    .pill:hover{border-color:var(--fg)}
+    const camera = new THREE.PerspectiveCamera(
+      55,
+      asciiMountRef.current.clientWidth / asciiMountRef.current.clientHeight,
+      0.1,
+      2000
+    );
+    camera.position.set(0, 1.2, 4.5);
 
-    /* Grid of works */
-    .grid{
-      display:grid;
-      grid-template-columns: repeat(3, minmax(0,1fr));
-      gap:16px;
-    }
-    .card{
-      border:1px solid var(--hair);
-      border-radius:14px;
-      overflow:hidden;
-      background:#0f0f0f;
-    }
-    .card .thumb{
-      aspect-ratio: 4 / 3;
-      background:#101010;
-    }
-    .card .thumb img{
-      width:100%;
-      height:100%;
-      object-fit:cover;
-      opacity:.92;
-    }
-    .card .cap{
-      padding:14px 14px 16px;
-      border-top:1px solid var(--hair);
-      color:var(--muted);
-      font-size:12.5px;
-    }
-    .card .cap b{
-      color:var(--fg);
-      font-weight:500;
-    }
+    // WebGL Renderer (base)
+    const renderer = new THREE.WebGLRenderer({
+      alpha: true,
+      antialias: true,
+    });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-    /* Statement */
-    .statement{
-      max-width: 820px;
-      color: rgba(242,242,242,.86);
-      font-size: 15px;
-    }
-    .statement p{margin:0 0 14px 0}
+    // ASCII Effect
+    // Cambiá la "paleta" de chars si querés más/menos densidad
+    const effect = new AsciiEffect(renderer, " .:-=+*#%@", {
+      invert: true,
+    });
 
-    /* Footer contact */
-    .contact{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap:18px;
-      align-items:start;
-    }
-    .contact .box{
-      border:1px solid var(--hair);
-      border-radius:14px;
-      padding:18px;
-    }
-    .small{color:var(--muted); font-size:12.5px}
-    .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace}
+    // Montaje del ASCII (reemplaza el canvas: es un <pre>)
+    effect.domElement.style.color = "#000";
+    effect.domElement.style.backgroundColor = "transparent";
+    effect.domElement.style.fontFamily =
+      'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace';
+    effect.domElement.style.fontSize = "10px";
+    effect.domElement.style.lineHeight = "10px";
+    effect.domElement.style.letterSpacing = "0px";
+    effect.domElement.style.userSelect = "none";
+    effect.domElement.style.width = "100%";
+    effect.domElement.style.height = "100%";
 
-    /* Responsive */
-    @media (max-width: 920px){
-      .hero-grid{grid-template-columns:1fr}
-      nav{justify-content:flex-start}
-      .grid{grid-template-columns: repeat(2, minmax(0,1fr))}
-      .contact{grid-template-columns:1fr}
-    }
-    @media (max-width: 560px){
-      .grid{grid-template-columns:1fr}
-      section{padding:56px 0}
-      .topbar .inner{padding:12px var(--pad)}
-    }
-  </style>
-</head>
+    asciiMountRef.current.appendChild(effect.domElement);
 
-<body>
+    // Luces (importante para que el OBJ “lea” bien en ASCII)
+    const key = new THREE.DirectionalLight(0xffffff, 1.1);
+    key.position.set(3, 4, 2);
+    scene.add(key);
 
-  <header class="topbar">
-    <div class="inner">
-      <div class="brand">
-        <div class="name">Armando Frezze Durand</div>
-        <div class="tag">Imagen · tecnología · materialidad</div>
-      </div>
-      <nav>
-        <a href="#obra">Obra</a>
-        <a href="#statement">Statement</a>
-        <a href="#pdf">PDF</a>
-        <a href="#contacto">Contacto</a>
-      </nav>
-    </div>
-  </header>
+    const fill = new THREE.DirectionalLight(0xffffff, 0.6);
+    fill.position.set(-3, 2, 3);
+    scene.add(fill);
 
-  <main>
-    <!-- HERO -->
-    <section class="hero" id="obra">
-      <div class="wrap">
-        <h2>Obra principal</h2>
-        <div class="hero-grid">
-          <div class="hero-media">
-            <!-- Reemplazá con tu imagen -->
-            <img src="obra-principal.jpg" alt="Army of Us 01" />
+    const ambient = new THREE.AmbientLight(0xffffff, 0.5);
+    scene.add(ambient);
+
+    // Grupo contenedor del OBJ
+    const group = new THREE.Group();
+    scene.add(group);
+
+    // Loader OBJ
+    const loader = new OBJLoader();
+
+    let loadedObject = null;
+
+    loader.load(
+      OBJ_URL,
+      (obj) => {
+        loadedObject = obj;
+
+        // Material base (para lectura de luz/volumen)
+        obj.traverse((child) => {
+          if (child.isMesh) {
+            child.material = new THREE.MeshStandardMaterial({
+              color: 0xffffff,
+              metalness: 0.0,
+              roughness: 1.0,
+            });
+            child.castShadow = false;
+            child.receiveShadow = false;
+          }
+        });
+
+        // Centramos y escalamos para que encuadre bien
+        const box = new THREE.Box3().setFromObject(obj);
+        const size = new THREE.Vector3();
+        box.getSize(size);
+        const center = new THREE.Vector3();
+        box.getCenter(center);
+
+        obj.position.sub(center); // centra en 0,0,0
+
+        // Escala automática (ajusta si querés más grande/chico)
+        const maxDim = Math.max(size.x, size.y, size.z);
+        const scale = 2.2 / (maxDim || 1); // 2.2 es “zoom” relativo
+        obj.scale.setScalar(scale);
+
+        // Levantamos un toque en Y (opcional)
+        obj.position.y += 0.1;
+
+        group.add(obj);
+      },
+      undefined,
+      (err) => {
+        console.error("Error cargando OBJ:", err);
+      }
+    );
+
+    // Size
+    const setSize = () => {
+      const w = asciiMountRef.current.clientWidth;
+      const h = asciiMountRef.current.clientHeight;
+
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+
+      renderer.setSize(w, h);
+      effect.setSize(w, h);
+    };
+
+    setSize();
+
+    // Animación
+    let rafId = 0;
+    const animate = () => {
+      rafId = requestAnimationFrame(animate);
+
+      // Giro suave (si no cargó aún, rota el grupo igual)
+      group.rotation.y += 0.004;
+
+      // Un pequeño “tilt” para que lea mejor el volumen
+      group.rotation.x = -0.08;
+
+      effect.render(scene, camera);
+    };
+
+    animate();
+
+    // Resize
+    const handleResize = () => setSize();
+    window.addEventListener("resize", handleResize);
+
+    // Cleanup
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      cancelAnimationFrame(rafId);
+
+      // sacar el domElement del effect
+      if (asciiMountRef.current && effect.domElement?.parentNode) {
+        effect.domElement.parentNode.removeChild(effect.domElement);
+      }
+      renderer.dispose();
+    };
+  }, []);
+
+  const works = [
+    // ... dejé tu grilla tal cual (podés reemplazar las imágenes después)
+    {
+      title: "Army of Us 02",
+      year: "2023",
+      material: "Fibra de vidrio · pintura industrial",
+      dimensions: "95 × 48 × 42 cm",
+      image:
+        "https://images.unsplash.com/photo-1578926288207-a90a5366759d?w=1200&q=80",
+    },
+    {
+      title: "Army of Us 03",
+      year: "2024",
+      material: "Fibra de vidrio · pintura industrial",
+      dimensions: "110 × 50 × 45 cm",
+      image:
+        "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=1200&q=80",
+    },
+    {
+      title: "Army of Us 04",
+      year: "2024",
+      material: "Fibra de vidrio · pintura industrial",
+      dimensions: "88 × 44 × 38 cm",
+      image:
+        "https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?w=1200&q=80",
+    },
+    {
+      title: "Army of Us 05",
+      year: "2023",
+      material: "Fibra de vidrio · pintura industrial",
+      dimensions: "102 × 52 × 43 cm",
+      image:
+        "https://images.unsplash.com/photo-1549887534-1541e9326642?w=1200&q=80",
+    },
+    {
+      title: "Army of Us 06",
+      year: "2024",
+      material: "Fibra de vidrio · pintura industrial",
+      dimensions: "98 × 46 × 41 cm",
+      image:
+        "https://images.unsplash.com/photo-1577083552431-6e5fd01988ec?w=1200&q=80",
+    },
+    {
+      title: "Army of Us 07",
+      year: "2023",
+      material: "Fibra de vidrio · pintura industrial",
+      dimensions: "92 × 47 × 39 cm",
+      image:
+        "https://images.unsplash.com/photo-1515377905703-c4788e51af15?w=1200&q=80",
+    },
+  ];
+
+  return (
+    <div
+      className="min-h-screen bg-white"
+      style={{
+        fontFamily:
+          '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif',
+      }}
+    >
+      {/* Header / Identidad */}
+      <header className="fixed top-0 left-0 right-0 z-50 px-6 md:px-16 lg:px-24 py-6 md:py-8 bg-white bg-opacity-95">
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
+          <div>
+            <h1 className="text-lg md:text-xl font-light tracking-tight">
+              Armando Frezze Durand
+            </h1>
+            <p className="text-xs md:text-sm text-gray-600 font-light">
+              Imagen · tecnología · materialidad
+            </p>
           </div>
-
-          <aside class="meta">
-            <div class="title">Army of Us 01, 2023</div>
-            <div class="lines">
-              <div>Fibra de vidrio · pintura industrial</div>
-              <div>90 × 45 × 40 cm</div>
-            </div>
-
-            <div class="cta">
-              <a class="pill" href="#grid">Ver grilla (6 obras)</a>
-            </div>
-
-            <div class="small" style="margin-top:14px">
-              Buenos Aires, Argentina
-            </div>
-          </aside>
         </div>
-      </div>
-    </section>
+      </header>
 
-    <!-- GRID -->
-    <section id="grid">
-      <div class="wrap">
-        <h2>Selección (máx. 6)</h2>
+      {/* Hero Section with ASCII OBJ */}
+      <section className="relative h-screen flex items-center justify-center overflow-hidden">
+        <div
+          ref={asciiMountRef}
+          className="absolute inset-0"
+          style={{
+            width: "100%",
+            height: "100%",
+          }}
+        />
+        <div className="relative z-10 text-center px-6">
+          <h2 className="text-5xl md:text-7xl lg:text-8xl font-light tracking-tight mb-4">
+            FRANCO
+          </h2>
+          <p className="text-lg md:text-xl text-gray-600 font-light">
+            LowPoly OBJ · ASCII render
+          </p>
+        </div>
+      </section>
 
-        <div class="grid">
-          <!-- CARD 1 -->
-          <div class="card">
-            <div class="thumb"><img src="obra-01.jpg" alt="Obra 01"></div>
-            <div class="cap">
-              <b>Army of Us 02</b>, 2023<br>
-              Fibra de vidrio · pintura industrial<br>
+      {/* Obra Principal */}
+      <section className="min-h-screen flex items-center justify-center px-6 md:px-16 lg:px-24 py-32">
+        <div className="max-w-7xl w-full">
+          <div className="mb-8">
+            <img
+              src="https://images.unsplash.com/photo-1547826039-bfc35e0f1ea8?w=1600&q=80"
+              alt="Army of Us 01"
+              className="w-full h-auto"
+            />
+          </div>
+          <div className="text-left max-w-md">
+            <p className="text-sm md:text-base leading-relaxed text-gray-700 font-light">
+              Army of Us 01, 2023
+              <br />
+              Fibra de vidrio · pintura industrial
+              <br />
               90 × 45 × 40 cm
-            </div>
-          </div>
-
-          <!-- CARD 2 -->
-          <div class="card">
-            <div class="thumb"><img src="obra-02.jpg" alt="Obra 02"></div>
-            <div class="cap">
-              <b>Army of Us 03</b>, 2024<br>
-              Fibra de vidrio · pintura industrial<br>
-              110 × 50 × 45 cm
-            </div>
-          </div>
-
-          <!-- CARD 3 -->
-          <div class="card">
-            <div class="thumb"><img src="obra-03.jpg" alt="Obra 03"></div>
-            <div class="cap">
-              <b>Bronce 01</b>, 2024<br>
-              Bronce<br>
-              18 × 12 × 10 cm
-            </div>
-          </div>
-
-          <!-- CARD 4 -->
-          <div class="card">
-            <div class="thumb"><img src="obra-04.jpg" alt="Obra 04"></div>
-            <div class="cap">
-              <b>Relieve 01</b>, 2025<br>
-              (Material)<br>
-              (Medidas)
-            </div>
-          </div>
-
-          <!-- CARD 5 -->
-          <div class="card">
-            <div class="thumb"><img src="obra-05.jpg" alt="Obra 05"></div>
-            <div class="cap">
-              <b>Obra 05</b>, 2025<br>
-              (Material)<br>
-              (Medidas)
-            </div>
-          </div>
-
-          <!-- CARD 6 -->
-          <div class="card">
-            <div class="thumb"><img src="obra-06.jpg" alt="Obra 06"></div>
-            <div class="cap">
-              <b>Obra 06</b>, 2025<br>
-              (Material)<br>
-              (Medidas)
-            </div>
+            </p>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
 
-    <!-- STATEMENT -->
-    <section id="statement">
-      <div class="wrap">
-        <h2>Statement</h2>
-        <div class="statement">
-          <p>La práctica de <b>Armando Frezze Durand</b> se construye en el cruce entre la imagen, la tecnología y la materialidad. Su trabajo parte de la fotografía y el audiovisual —del laboratorio analógico al entorno digital— para desplazarse hacia procesos de escaneo, manipulación y traducción de imágenes en cuerpos físicos. La escultura aparece aquí no como punto de partida, sino como consecuencia de un recorrido que atraviesa lo <i>online</i> y lo <i>offline</i>, lo virtual y lo tangible.</p>
-
-          <p>En este tránsito, el cuerpo humano —particularmente el cuerpo masculino— funciona como una operación de desplazamiento. Cuerpos e imágenes provenientes del flujo cotidiano —personajes anónimos, presencias irrelevantes dentro de las jerarquías culturales— son traducidos a materia con la intención de persistir en el tiempo. En esa traslación se activa una tensión constante entre representación, deseo y artificio tecnológico.</p>
-
-          <p>Esta materialización introduce una pregunta incómoda: ¿qué cuerpos, qué imágenes y qué relatos merecen ser conservados? Al otorgar duración y peso escultórico a figuras sin jerarquía aparente, la obra tensiona las nociones de relevancia, valor e idealización, y expone el carácter arbitrario de aquello que una cultura decide monumentalizar, reproducir o multiplicar.</p>
-
-          <p>La repetición opera en la obra como un método. Un mismo cuerpo, una misma imagen o un mismo individuo reaparece a lo largo del tiempo bajo distintas formas —fotografía, video, escultura, relieve—, desplazado y reescrito en cada nueva traducción material. Esta insistencia no busca fijar un ícono, sino erosionarlo: volver a interrogar su vigencia, su carga simbólica y su relación con el tiempo. La repetición no garantiza permanencia; la interpela.</p>
-
-          <p>Entre imagen y materia, la práctica de Frezze Durand no busca cerrar sentidos, sino habilitar preguntas sobre qué conservamos, por qué lo hacemos y qué dejamos caer en el proceso. Un gesto de fricción frente a la lógica del desplazamiento constante y el consumo infinito de imágenes.</p>
+      {/* Grilla de Obras */}
+      <section className="px-6 md:px-16 lg:px-24 py-32 max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 md:gap-16 lg:gap-20">
+          {works.map((work, index) => (
+            <div key={index}>
+              <div className="mb-6">
+                <img src={work.image} alt={work.title} className="w-full h-auto" />
+              </div>
+              <div className="text-left">
+                <p className="text-sm leading-relaxed text-gray-700 font-light">
+                  {work.title}, {work.year}
+                  <br />
+                  {work.material}
+                  <br />
+                  {work.dimensions}
+                </p>
+              </div>
+            </div>
+          ))}
         </div>
-      </div>
-    </section>
+      </section>
 
-    <!-- PDF -->
-    <section id="pdf">
-      <div class="wrap">
-        <h2>Portfolio</h2>
-        <a class="pill" href="portfolio-escultura.pdf" target="_blank" rel="noopener">Descargar Portfolio – Escultura</a>
-        <div class="small" style="margin-top:10px">Abrir en nueva pestaña</div>
-      </div>
-    </section>
+      {/* Statement Section con fondo oscuro */}
+      <section className="bg-black text-white px-6 md:px-16 lg:px-24 py-32">
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-xs md:text-sm uppercase tracking-widest mb-16 opacity-60 font-light">
+            Statement
+          </h2>
 
-    <!-- CONTACT -->
-    <section id="contacto">
-      <div class="wrap">
-        <h2>Contacto</h2>
-        <div class="contact">
-          <div class="box">
-            <div class="mono">Armando Frezze Durand</div>
-            <div class="small" style="margin-top:8px">Buenos Aires, Argentina</div>
-          </div>
-
-          <div class="box">
-            <div class="small">Email</div>
-            <div style="margin-top:6px"><a href="mailto:armando@dooplerstudio.com.ar">armando@dooplerstudio.com.ar</a></div>
-            <div class="small" style="margin-top:12px">Tel</div>
-            <div style="margin-top:6px"><a href="tel:+5491165598444">+54 9 11 6559 8444</a></div>
+          <div className="space-y-8 text-base md:text-lg leading-relaxed font-light">
+            <p>
+              La práctica de Armando Frezze Durand se construye en el cruce entre la
+              imagen, la tecnología y la materialidad. Su trabajo parte de la fotografía
+              y el audiovisual —del laboratorio analógico al entorno digital— para
+              desplazarse hacia procesos de escaneo, manipulación y traducción de
+              imágenes en cuerpos físicos. La escultura aparece aquí no como punto de
+              partida, sino como consecuencia de un recorrido que atraviesa lo online y
+              lo offline, lo virtual y lo tangible.
+            </p>
+            <p>
+              En este tránsito, el cuerpo humano —particularmente el cuerpo masculino—
+              funciona como una operación de desplazamiento. Cuerpos e imágenes
+              provenientes del flujo cotidiano —personajes anónimos, presencias
+              irrelevantes dentro de las jerarquías culturales— son traducidos a materia
+              con la intención de persistir en el tiempo. En esa traslación se activa
+              una tensión constante entre representación, deseo y artificio tecnológico.
+            </p>
+            <p>
+              Esta materialización introduce una pregunta incómoda: ¿qué cuerpos, qué
+              imágenes y qué relatos merecen ser conservados? Al otorgar duración y peso
+              escultórico a figuras sin jerarquía aparente, la obra tensiona las nociones
+              de relevancia, valor e idealización, y expone el carácter arbitrario de
+              aquello que una cultura decide monumentalizar, reproducir o multiplicar.
+            </p>
+            <p>
+              La repetición opera en la obra como un método. Un mismo cuerpo, una misma
+              imagen o un mismo individuo reaparece a lo largo del tiempo bajo distintas
+              formas —fotografía, video, escultura, relieve—, desplazado y reescrito en
+              cada nueva traducción material. Esta insistencia no busca fijar un ícono,
+              sino erosionarlo: volver a interrogar su vigencia, su carga simbólica y su
+              relación con el tiempo. La repetición no garantiza permanencia; la
+              interpela.
+            </p>
+            <p>
+              Entre imagen y materia, la práctica de Frezze Durand no busca cerrar
+              sentidos, sino habilitar preguntas sobre qué conservamos, por qué lo
+              hacemos y qué dejamos caer en el proceso. Un gesto de fricción frente a la
+              lógica del desplazamiento constante y el consumo infinito de imágenes.
+            </p>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
 
-  </main>
+      {/* Botón PDF */}
+      <section className="px-6 md:px-16 lg:px-24 py-32 max-w-7xl mx-auto">
+        <a
+          href="#"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-3 bg-black text-white px-8 py-4 text-sm uppercase tracking-wider hover:bg-gray-900 transition-colors font-light"
+        >
+          <Download size={18} />
+          Descargar Portfolio – Escultura
+        </a>
+      </section>
 
-</body>
-</html>
+      {/* Contacto */}
+      <section className="px-6 md:px-16 lg:px-24 py-32 max-w-7xl mx-auto border-t border-gray-200">
+        <div className="text-left space-y-1 text-sm md:text-base text-gray-700 font-light">
+          <p>Armando Frezze Durand</p>
+          <p>Buenos Aires, Argentina</p>
+          <p>
+            <a
+              href="mailto:armando@dooplerstudio.com.ar"
+              className="hover:text-black transition-colors"
+            >
+              armando@dooplerstudio.com.ar
+            </a>
+          </p>
+          <p>+54 9 11 6559 8444</p>
+        </div>
+      </section>
+    </div>
+  );
+}
