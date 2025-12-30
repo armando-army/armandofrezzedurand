@@ -8,23 +8,19 @@
 
   <style>
     :root{
-      --bg:#0a0a0a;
-      --fg:#ffffff;
-      --muted:rgba(255,255,255,.72);
-      --soft:rgba(255,255,255,.10);
-      --soft2:rgba(255,255,255,.16);
+      --bg:#0b0b0b;
+      --bg2:#111111;
+      --fg:#f3f3f3;
+      --muted:rgba(243,243,243,.72);
+      --muted2:rgba(243,243,243,.55);
+      --line:rgba(243,243,243,.14);
+      --line2:rgba(243,243,243,.10);
       --accent:#ff6a00;
-      --max:1180px;
-
-      --pad:18px;
-      --pad-lg:28px;
-
-      --h1: clamp(40px, 7.2vw, 88px);
-      --h2: clamp(18px, 2.2vw, 26px);
-      --p:  clamp(15px, 1.4vw, 18px);
-
+      --max:1240px;
+      --pad:22px;
+      --pad2:28px;
       --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      --sans: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
     }
 
     *{box-sizing:border-box}
@@ -36,348 +32,273 @@
       font-family:var(--sans);
       overflow-x:hidden;
     }
+
+    /* dotted background like reference */
+    body:before{
+      content:"";
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      z-index:0;
+      background:
+        radial-gradient(circle, rgba(243,243,243,.18) 1px, transparent 1px) 0 0/18px 18px;
+      opacity:.35;
+      mix-blend-mode: normal;
+    }
+
     a{color:inherit; text-decoration:none}
-    a:hover{opacity:.92}
-    .mono{font-family:var(--mono)}
-    .muted{color:var(--muted)}
+    a:hover{color:var(--fg)}
+    .wrap{max-width:var(--max); margin:0 auto; padding:0 var(--pad); position:relative; z-index:2;}
+    @media (min-width: 1024px){ .wrap{padding:0 var(--pad2);} }
 
-    /* ====== Layout grid (tipo CREGG) ====== */
-    .wrap{max-width:var(--max); margin:0 auto; padding:0 var(--pad);}
-    .grid{
-      display:grid;
-      grid-template-columns: repeat(12, 1fr);
-      gap: 14px;
-    }
-    @media (min-width: 1024px){
-      .wrap{padding:0 var(--pad-lg);}
-      .grid{gap:18px;}
-    }
-
-    /* ====== Header fixed ====== */
+    /* top nav like screenshot */
     header{
       position:fixed;
       top:0; left:0; right:0;
       z-index:50;
-      padding: 10px var(--pad);
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      pointer-events:none;
+      padding:16px 0;
+      background: linear-gradient(to bottom, rgba(11,11,11,.92), rgba(11,11,11,.55));
+      backdrop-filter: blur(10px);
+      border-bottom:1px solid var(--line2);
     }
-    .header-inner{
-      width:min(var(--max), calc(100% - (var(--pad) * 2)));
+    .nav{
       display:flex;
-      align-items:center;
       justify-content:space-between;
-      pointer-events:auto;
+      align-items:center;
+      gap:16px;
     }
-    .navbtn{
+    .brand{
+      display:flex; align-items:center; gap:10px;
+      font-family:var(--sans);
+      font-size:14px;
+      letter-spacing:.2px;
+    }
+    .brand .mark{
+      width:16px; height:16px; display:grid; grid-template-columns:repeat(2,1fr); gap:3px;
+    }
+    .brand .mark span{border:1px solid rgba(243,243,243,.75); width:100%; height:100%;}
+    .pillnav{
+      display:flex; gap:10px; align-items:center; flex-wrap:wrap;
+      font-family:var(--sans);
+    }
+    .pillnav a{
       display:inline-flex;
       align-items:center;
-      gap:10px;
-      padding:10px 12px;
-      border-radius:14px;
-      border:1px solid var(--soft);
-      background:rgba(10,10,10,.35);
-      backdrop-filter: blur(10px);
+      padding:10px 14px;
+      border:1px solid var(--line);
+      background:rgba(17,17,17,.55);
+      color:rgba(243,243,243,.92);
+      font-size:14px;
     }
-    .navbtn:hover{border-color: var(--soft2)}
-    .brand{
-      display:flex;
-      flex-direction:column;
-      gap:2px;
-      font-size:12px;
-      letter-spacing:.02em;
-    }
-    .brand .name{font-weight:500}
-    .brand .tag{color:var(--muted); font-family:var(--mono); font-size:11px}
-
-    .menu{
-      display:flex; align-items:center; gap:10px;
-      font-family:var(--mono);
-      font-size:12px;
-      color:var(--muted);
-    }
-    .menu a{padding:10px 10px; border-radius:12px; border:1px solid transparent}
-    .menu a:hover{border-color: var(--soft); color:var(--fg)}
+    .pillnav a:hover{border-color:rgba(243,243,243,.34)}
     @media (max-width: 860px){
-      .menu{display:none;}
+      .pillnav a{padding:9px 12px; font-size:13px}
     }
 
-    .sq{
-      width:14px; height:14px; position:relative;
-      display:inline-block;
+    /* ===== Overlapping sections (stacking panels) =====
+       Each section is sticky and occupies the viewport;
+       next section scrolls over it.
+    */
+    main{position:relative; z-index:1;}
+    .stack{
+      padding-top:80px; /* space for fixed header */
     }
-    .sq:before, .sq:after{
-      content:"";
-      position:absolute;
-      width:6px; height:6px;
-      border:1px solid rgba(255,255,255,.65);
-      border-radius:2px;
-    }
-    .sq:before{left:0; top:0}
-    .sq:after{right:0; bottom:0}
-
-    /* ====== Hero ====== */
-    .hero{
-      min-height:100vh;
-      position:relative;
-      display:flex;
-      align-items:flex-end;
-      padding-top:64px;
+    section.panel{
+      position:sticky;
+      top:80px; /* below header */
+      min-height: calc(100vh - 80px);
+      border-top:1px solid var(--line2);
+      background: rgba(11,11,11,.92);
+      /* no rounding */
       overflow:hidden;
     }
-    .hero-bg{
-      position:absolute;
-      inset:0;
-      z-index:0;
-      pointer-events:none;
-      background:
-        radial-gradient(1200px 800px at 70% 10%, rgba(255,106,0,.10), transparent 55%),
-        radial-gradient(900px 600px at 20% 30%, rgba(255,255,255,.06), transparent 58%);
+
+    /* panel inner layout */
+    .panel-inner{
+      padding: 46px 0 56px;
+    }
+    @media (max-width: 860px){
+      .panel-inner{padding: 38px 0 46px;}
     }
 
-    /* ASCII mount ocupa todo */
-    #asciiMount{
+    /* BIG TITLE */
+    .hero-title{
+      font-size: clamp(46px, 6.4vw, 86px);
+      line-height: 1.02;
+      letter-spacing: -0.02em;
+      margin: 0;
+      font-weight: 500;
+    }
+    .hero-subline{
+      margin-top:14px;
+      font-size: clamp(16px, 1.6vw, 20px);
+      color: var(--muted);
+      max-width: 84ch;
+    }
+    .hero-subline a{border-bottom:1px solid rgba(243,243,243,.28)}
+    .hero-subline a:hover{border-bottom-color: rgba(255,106,0,.7); color: var(--fg);}
+
+    /* hero ascii area */
+    .hero-ascii{
       position:absolute;
       inset:0;
       z-index:1;
-      opacity:.95;
       pointer-events:none;
-      filter: contrast(1.05);
+      opacity:.92;
     }
-    /* el AsciiEffect mete un <pre> */
-    #asciiMount pre{
-      margin:0 !important;
-    }
-
     .hero-content{
       position:relative;
       z-index:2;
+    }
+
+    /* Featured image block */
+    .feature{
+      margin-top: 28px;
+      border:1px solid var(--line2);
+      background: rgba(17,17,17,.70);
+    }
+    .feature img{
       width:100%;
-      padding: 0 0 26px;
-    }
-
-    .hero-title{
-      grid-column: 1 / -1;
-      font-size: var(--h1);
-      line-height: .92;
-      letter-spacing: -0.03em;
-      margin: 0;
-      font-weight: 500;
-      white-space: pre-line;
-      text-shadow: 0 18px 60px rgba(0,0,0,.55);
-    }
-    .hero-title .line{
+      height:min(62vh, 760px);
+      object-fit:cover;
       display:block;
+      filter:contrast(1.02) saturate(.98);
     }
-
-    .hero-sub{
-      grid-column: 1 / -1;
-      margin-top: 18px;
-      display:flex;
-      gap:14px;
-      align-items:flex-start;
-      flex-wrap:wrap;
-    }
-
-    .lead{
-      font-size: var(--p);
-      line-height:1.35;
-      color:rgba(255,255,255,.86);
-      max-width: 70ch;
-      margin:0;
-    }
-
-    .cta{
-      display:inline-flex;
-      align-items:center;
-      gap:10px;
-      font-family:var(--mono);
-      font-size:14px;
-      color:rgba(255,255,255,.86);
-      padding:10px 12px;
-      border-radius:14px;
-      border:1px solid var(--soft);
-      background:rgba(10,10,10,.32);
-      backdrop-filter: blur(10px);
-    }
-    .cta:hover{border-color:rgba(255,106,0,.45)}
-    .arrow{color:var(--accent)}
-
-    /* ====== Featured image ====== */
-    .featured{
-      padding: 28px 0 8px;
-    }
-    .featured .img{
-      grid-column: 1 / -1;
-      border-radius: 18px;
-      overflow:hidden;
-      border:1px solid var(--soft);
-      background:#111;
-    }
-    .featured img{
-      width:100%;
-      height: min(72vh, 820px);
-      object-fit: cover;
-      display:block;
-    }
-    .caption{
-      grid-column: 1 / -1;
+    .feature-cap{
       display:flex;
       justify-content:space-between;
       gap:14px;
-      margin-top:10px;
+      padding:14px 14px;
       font-family:var(--mono);
       font-size:12px;
-      color:var(--muted);
+      color:var(--muted2);
+      border-top:1px solid var(--line2);
     }
-    .cap-left{max-width: 72ch;}
-    .cap-right{white-space:nowrap;}
+    .feature-cap b{color:rgba(243,243,243,.9); font-weight:600}
 
-    /* ====== Sections ====== */
-    section.block{
-      padding: 34px 0;
-      border-top: 1px solid var(--soft);
-    }
+    /* section headings */
     .kicker{
-      grid-column: 1 / -1;
       font-family:var(--mono);
       font-size:12px;
-      letter-spacing:.08em;
-      color:rgba(255,255,255,.70);
-      margin:0 0 16px;
+      letter-spacing:.10em;
+      color: rgba(243,243,243,.70);
+      margin:0 0 18px;
     }
 
-    /* works grid max 6 */
+    /* works grid */
     .works{
       display:grid;
-      grid-template-columns: repeat(12, 1fr);
-      gap: 14px;
+      grid-template-columns: repeat(3, 1fr);
+      gap:14px;
     }
+    @media (max-width: 980px){ .works{grid-template-columns: repeat(2, 1fr);} }
+    @media (max-width: 560px){ .works{grid-template-columns: 1fr;} }
+
     .work{
-      grid-column: span 4;
-      border:1px solid var(--soft);
-      border-radius: 16px;
-      overflow:hidden;
-      background: rgba(255,255,255,.03);
-      transition: transform .14s ease, border-color .14s ease;
+      border:1px solid var(--line2);
+      background: rgba(17,17,17,.55);
       cursor:pointer;
+      transition: border-color .15s ease, transform .15s ease;
     }
-    .work:hover{
-      transform: translateY(-2px);
-      border-color: rgba(255,106,0,.45);
-    }
+    .work:hover{border-color: rgba(255,106,0,.55); transform: translateY(-2px);}
     .work img{
       width:100%;
-      height: 260px;
-      object-fit: cover;
+      height:240px;
+      object-fit:cover;
       display:block;
     }
     .work .meta{
-      padding: 12px 12px 14px;
+      padding:12px 12px 14px;
+      border-top:1px solid var(--line2);
       font-family:var(--mono);
       font-size:12px;
-      color: var(--muted);
-      line-height:1.35;
+      color:var(--muted2);
+      line-height:1.4;
     }
-    @media (max-width: 980px){
-      .work{grid-column: span 6;}
-      .work img{height: 240px;}
-    }
-    @media (max-width: 560px){
-      .work{grid-column: 1 / -1;}
-      .work img{height: 240px;}
-    }
+    .work .meta b{color:rgba(243,243,243,.92); font-weight:600}
 
     /* statement */
     .statement{
-      grid-column: 1 / -1;
-      max-width: 86ch;
-      font-size: var(--p);
-      line-height:1.45;
-      color: rgba(255,255,255,.86);
+      max-width: 92ch;
+      font-size: 18px;
+      line-height: 1.55;
+      color: rgba(243,243,243,.88);
     }
     .statement p{margin:0 0 14px}
     .statement p:last-child{margin:0}
 
-    /* download + contact */
-    .two-col{
+    /* PDF + contact blocks */
+    .cols{
       display:grid;
-      grid-template-columns: repeat(12, 1fr);
+      grid-template-columns: 1fr 1fr;
       gap:14px;
       align-items:start;
     }
-    .panel{
-      border:1px solid var(--soft);
-      border-radius: 18px;
-      padding: 16px;
-      background: rgba(255,255,255,.03);
+    @media (max-width: 860px){ .cols{grid-template-columns: 1fr;} }
+
+    .box{
+      border:1px solid var(--line2);
+      background: rgba(17,17,17,.55);
+      padding:16px;
     }
-    .panel h3{
-      margin:0 0 10px;
-      font-size: 13px;
+    .box h3{
+      margin:0 0 12px;
       font-family:var(--mono);
-      color: rgba(255,255,255,.82);
-      letter-spacing:.06em;
+      font-size:12px;
+      letter-spacing:.10em;
+      color:rgba(243,243,243,.70);
+      font-weight:600;
+      text-transform:uppercase;
     }
-    .panel p{
+    .box p{
       margin:0;
-      font-size: 14px;
-      color: var(--muted);
-      line-height:1.4;
+      color:var(--muted);
+      font-size:14px;
+      line-height:1.45;
     }
-    .dl{
+
+    .btn{
       display:inline-flex;
-      margin-top:12px;
       align-items:center;
       gap:10px;
-      padding: 12px 14px;
-      border-radius: 14px;
-      border:1px solid rgba(255,106,0,.45);
-      background: linear-gradient(180deg, rgba(255,106,0,.16), rgba(255,106,0,.06));
+      padding:12px 14px;
+      margin-top:14px;
+      border:1px solid rgba(255,106,0,.55);
+      background: rgba(255,106,0,.10);
       font-family:var(--mono);
-      font-size: 13px;
+      font-size:13px;
+      letter-spacing:.02em;
     }
-    .dl:hover{border-color: rgba(255,106,0,.72)}
-    .dl .dot{
-      width:8px; height:8px;
-      background: var(--accent);
-      border-radius: 2px;
-      display:inline-block;
-    }
-    .col-a{grid-column: 1 / span 6;}
-    .col-b{grid-column: 7 / -1;}
-    @media (max-width: 860px){
-      .col-a,.col-b{grid-column: 1 / -1;}
-    }
+    .btn:hover{border-color: rgba(255,106,0,.85);}
+    .arrow{color:var(--accent);}
 
     footer{
-      padding: 26px 0 50px;
-      border-top:1px solid var(--soft);
-      color: rgba(255,255,255,.50);
-      font-family:var(--mono);
-      font-size:11px;
+      position:relative;
+      z-index:2;
+      padding: 22px 0 60px;
+      border-top: 1px solid var(--line2);
+      color: rgba(243,243,243,.52);
+      font-family: var(--mono);
+      font-size: 11px;
+      background: rgba(11,11,11,.92);
     }
 
-    /* modal simple */
+    /* modal */
     .modal{
       position:fixed; inset:0;
-      background: rgba(0,0,0,.78);
+      background: rgba(0,0,0,.82);
       display:none;
       align-items:center;
       justify-content:center;
-      z-index:100;
-      padding: 14px;
+      z-index:200;
+      padding: 16px;
     }
     .modal.open{display:flex;}
     .modal-box{
       width:min(1100px, 100%);
-      border:1px solid rgba(255,255,255,.14);
-      border-radius: 18px;
+      border:1px solid rgba(243,243,243,.18);
+      background: rgba(11,11,11,.92);
       overflow:hidden;
-      background: rgba(10,10,10,.88);
-      backdrop-filter: blur(10px);
     }
     .modal-top{
       display:flex;
@@ -385,25 +306,25 @@
       justify-content:space-between;
       gap:10px;
       padding: 12px 14px;
-      border-bottom:1px solid rgba(255,255,255,.10);
+      border-bottom:1px solid rgba(243,243,243,.12);
       font-family:var(--mono);
       font-size:12px;
-      color: rgba(255,255,255,.76);
+      color: rgba(243,243,243,.75);
     }
     .modal-btn{
       padding:8px 10px;
-      border-radius: 12px;
-      border:1px solid rgba(255,255,255,.14);
+      border:1px solid rgba(243,243,243,.18);
       background: transparent;
-      color: rgba(255,255,255,.82);
+      color: rgba(243,243,243,.82);
       cursor:pointer;
       font-family:var(--mono);
+      font-size:12px;
     }
-    .modal-btn:hover{border-color: rgba(255,106,0,.45); color: var(--accent);}
+    .modal-btn:hover{border-color: rgba(255,106,0,.55); color: var(--accent);}
     .modal-img{
       width:100%;
-      height: min(78vh, 820px);
-      background:#111;
+      height: min(80vh, 860px);
+      background:#0f0f0f;
     }
     .modal-img img{
       width:100%; height:100%;
@@ -416,142 +337,103 @@
 <body>
 
 <header>
-  <div class="header-inner">
-    <a class="navbtn" href="#top" aria-label="Home">
-      <span class="sq" aria-hidden="true"></span>
-      <span class="brand">
-        <span class="name">Armando Frezze Durand</span>
-        <span class="tag">imagen · tecnología · materialidad</span>
-      </span>
-    </a>
+  <div class="wrap">
+    <div class="nav">
+      <a class="brand" href="#top" aria-label="Home">
+        <span class="mark" aria-hidden="true"><span></span><span></span><span></span><span></span></span>
+        <span>Armando Frezze Durand</span>
+      </a>
 
-    <nav class="menu" aria-label="Sections">
-      <a href="#works">Works</a>
-      <a href="#statement">Statement</a>
-      <a href="#pdf">PDF</a>
-      <a href="#contact">Contact</a>
-    </nav>
-
-    <a class="navbtn mono" href="#contact">
-      <span style="opacity:.85">Menu</span>
-      <span class="arrow">→</span>
-    </a>
+      <nav class="pillnav" aria-label="Sections">
+        <a href="#works">Works</a>
+        <a href="#statement">Statement</a>
+        <a href="#pdf">PDF</a>
+        <a href="#contact">Contact</a>
+      </nav>
+    </div>
   </div>
 </header>
 
-<!-- HERO -->
-<section class="hero" id="top">
-  <div class="hero-bg"></div>
-  <div id="asciiMount"></div>
+<main class="stack" id="top">
 
-  <div class="wrap hero-content">
-    <div class="grid">
-      <h1 class="hero-title">
-        <span class="line">lo virtual</span>
-        <span class="line">se reencuentra</span>
-        <span class="line">con lo tangible.</span>
-      </h1>
+  <!-- PANEL 1: HERO -->
+  <section class="panel" style="z-index:10;">
+    <div id="asciiMount" class="hero-ascii"></div>
 
-      <div class="hero-sub">
-        <p class="lead">
-          Trabajo en el cruce entre la imagen, la tecnología y la materialidad: del laboratorio analógico al entorno digital,
-          del escaneo a la impresión 3D, y de ahí a la obra física, donde el archivo se vuelve cuerpo.
-          La repetición opera como método: una misma figura reaparece, se erosiona y se reescribe en el tiempo.
-        </p>
-
-        <a class="cta" href="#statement">
-          Learn more <span class="arrow">→</span>
-        </a>
-
-        <a class="cta" href="#pdf" style="border-color: rgba(255,106,0,.35);">
-          Portfolio PDF <span class="arrow">→</span>
-        </a>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- FEATURED IMAGE -->
-<section class="featured">
-  <div class="wrap">
-    <div class="grid">
-      <div class="img">
-        <!-- Imagen grande (hero de obra): subila con este nombre -->
-        <img src="armando-frezze-durand-1.jpeg" alt="Obra — Armando Frezze Durand" loading="eager" />
+    <div class="wrap panel-inner hero-content">
+      <h1 class="hero-title">ARMANDO FREZZE DURAND</h1>
+      <div class="hero-subline">
+        imagen · tecnología · materialidad <span style="color:rgba(255,106,0,.9)">—</span>
+        <a href="#statement">Learn more →</a>
       </div>
 
-      <div class="caption">
-        <div class="cap-left">
-          <span class="mono">Obra destacada</span>
-          <span class="muted"> — fibra de vidrio / bronce / procesos digitales</span>
-        </div>
-        <div class="cap-right">
-          <span class="mono" style="color: rgba(255,106,0,.95)">Space-age orange</span>
+      <!-- obra destacada (usa tu imagen 1) -->
+      <div class="feature" style="margin-top:34px;">
+        <img src="armando-frezze-durand-1.jpeg" alt="Obra destacada" loading="eager" />
+        <div class="feature-cap">
+          <div><b>Obra destacada</b> · fibra de vidrio / bronce / procesos digitales</div>
+          <div><span style="color:rgba(255,106,0,.9)">Space-age orange</span></div>
         </div>
       </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<!-- WORKS GRID -->
-<section class="block" id="works">
-  <div class="wrap">
-    <div class="grid">
+  <!-- PANEL 2: WORKS -->
+  <section class="panel" id="works" style="z-index:9;">
+    <div class="wrap panel-inner">
       <p class="kicker">[works — selección (máximo 6)]</p>
+
+      <div class="works">
+        <article class="work" data-full="armando-frezze-durand-1.jpeg" data-title="Obra 01" data-meta="fibra de vidrio / gran formato">
+          <img src="armando-frezze-durand-1.jpeg" alt="Obra 01" loading="lazy" />
+          <div class="meta"><b>Obra 01</b><br/>fibra de vidrio / gran formato</div>
+        </article>
+
+        <article class="work" data-full="armando-frezze-durand-2.jpeg" data-title="Obra 02" data-meta="bronce / pieza chica">
+          <img src="armando-frezze-durand-2.jpeg" alt="Obra 02" loading="lazy" />
+          <div class="meta"><b>Obra 02</b><br/>bronce / pieza chica</div>
+        </article>
+
+        <article class="work" data-full="armando-frezze-durand-3.jpeg" data-title="Obra 03" data-meta="archivo → cuerpo / serie">
+          <img src="armando-frezze-durand-3.jpeg" alt="Obra 03" loading="lazy" />
+          <div class="meta"><b>Obra 03</b><br/>archivo → cuerpo / serie</div>
+        </article>
+
+        <article class="work" data-full="armando-frezze-durand-4.jpeg" data-title="Obra 04" data-meta="pantallas / proyección">
+          <img src="armando-frezze-durand-4.jpeg" alt="Obra 04" loading="lazy" />
+          <div class="meta"><b>Obra 04</b><br/>pantallas / proyección</div>
+        </article>
+
+        <article class="work" data-full="armando-frezze-durand-5.jpeg" data-title="Obra 05" data-meta="impresión 3D / post-proceso">
+          <img src="armando-frezze-durand-5.jpeg" alt="Obra 05" loading="lazy" />
+          <div class="meta"><b>Obra 05</b><br/>impresión 3D / post-proceso</div>
+        </article>
+
+        <article class="work" data-full="armando-frezze-durand-6.jpeg" data-title="Obra 06" data-meta="repetición / variación">
+          <img src="armando-frezze-durand-6.jpeg" alt="Obra 06" loading="lazy" />
+          <div class="meta"><b>Obra 06</b><br/>repetición / variación</div>
+        </article>
+      </div>
     </div>
+  </section>
 
-    <div class="works" id="worksGrid">
-      <!-- Cambiá títulos/metas cuando quieras; las imágenes son tu naming fijo -->
-      <article class="work" data-full="armando-frezze-durand-1.jpeg" data-title="Obra 01" data-meta="fibra de vidrio / gran formato">
-        <img src="armando-frezze-durand-1.jpeg" alt="Obra 01" loading="lazy" />
-        <div class="meta">Obra 01<br/>fibra de vidrio / gran formato</div>
-      </article>
-
-      <article class="work" data-full="armando-frezze-durand-2.jpeg" data-title="Obra 02" data-meta="bronce / pieza chica">
-        <img src="armando-frezze-durand-2.jpeg" alt="Obra 02" loading="lazy" />
-        <div class="meta">Obra 02<br/>bronce / pieza chica</div>
-      </article>
-
-      <article class="work" data-full="armando-frezze-durand-3.jpeg" data-title="Obra 03" data-meta="archivo → cuerpo / serie">
-        <img src="armando-frezze-durand-3.jpeg" alt="Obra 03" loading="lazy" />
-        <div class="meta">Obra 03<br/>archivo → cuerpo / serie</div>
-      </article>
-
-      <article class="work" data-full="armando-frezze-durand-4.jpeg" data-title="Obra 04" data-meta="pantallas / proyección">
-        <img src="armando-frezze-durand-4.jpeg" alt="Obra 04" loading="lazy" />
-        <div class="meta">Obra 04<br/>pantallas / proyección</div>
-      </article>
-
-      <article class="work" data-full="armando-frezze-durand-5.jpeg" data-title="Obra 05" data-meta="impresión 3D / post-proceso">
-        <img src="armando-frezze-durand-5.jpeg" alt="Obra 05" loading="lazy" />
-        <div class="meta">Obra 05<br/>impresión 3D / post-proceso</div>
-      </article>
-
-      <article class="work" data-full="armando-frezze-durand-6.jpeg" data-title="Obra 06" data-meta="repetición / variación">
-        <img src="armando-frezze-durand-6.jpeg" alt="Obra 06" loading="lazy" />
-        <div class="meta">Obra 06<br/>repetición / variación</div>
-      </article>
-    </div>
-  </div>
-</section>
-
-<!-- STATEMENT -->
-<section class="block" id="statement">
-  <div class="wrap">
-    <div class="grid">
+  <!-- PANEL 3: STATEMENT -->
+  <section class="panel" id="statement" style="z-index:8;">
+    <div class="wrap panel-inner">
       <p class="kicker">[statement]</p>
+
       <div class="statement">
         <p>
           La práctica de Armando Frezze Durand se construye en el cruce entre la imagen, la tecnología y la materialidad.
-          El trabajo parte de la fotografía y el audiovisual —del laboratorio analógico al entorno digital— para desplazarse
-          hacia procesos de escaneo, manipulación y traducción de imágenes en cuerpos físicos. La escultura aparece no como
-          punto de partida, sino como consecuencia de un recorrido que atraviesa lo online y lo offline, lo virtual y lo tangible.
+          Su trabajo parte de la fotografía y el audiovisual —del laboratorio analógico al entorno digital— para desplazarse
+          hacia procesos de escaneo, manipulación y traducción de imágenes en cuerpos físicos. La escultura aparece aquí
+          no como punto de partida, sino como consecuencia de un recorrido que atraviesa lo online y lo offline, lo virtual y lo tangible.
         </p>
         <p>
           Esta materialización introduce una pregunta incómoda: ¿qué cuerpos, qué imágenes y qué relatos merecen ser conservados?
           Al otorgar duración y peso escultórico a figuras sin jerarquía aparente, la obra tensiona nociones de relevancia, valor e idealización,
-          y expone el carácter arbitrario de aquello que una cultura decide monumentalizar o reproducir. En ese gesto, la masculinidad aparece
-          como materia de trabajo: no como afirmación, sino como algo que la obra interpela.
+          y expone el carácter arbitrario de aquello que una cultura decide monumentalizar o reproducir. En ese gesto, la masculinidad aparece como materia de trabajo:
+          no como afirmación, sino como algo que la obra interpela.
         </p>
         <p>
           La repetición opera como método: un mismo individuo reaparece a lo largo del tiempo bajo distintas formas —foto, video, relieve, escultura, proyección—.
@@ -560,57 +442,45 @@
         </p>
       </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<!-- PDF + CONTACT -->
-<section class="block" id="pdf">
-  <div class="wrap">
-    <div class="two-col">
-      <div class="panel col-a">
-        <h3>[portfolio]</h3>
-        <p class="muted">
-          Descargá el PDF con selección de obra física y proyectos audiovisuales.
-        </p>
-        <!-- Subí tu PDF al repo como portfolio.pdf o cambiá el nombre acá -->
-        <a class="dl" href="portfolio.pdf" download>
-          <span class="dot"></span> Descargar PDF <span class="arrow">→</span>
-        </a>
-      </div>
+  <!-- PANEL 4: PDF + CONTACT -->
+  <section class="panel" id="pdf" style="z-index:7;">
+    <div class="wrap panel-inner">
+      <p class="kicker">[pdf + contact]</p>
 
-      <div class="panel col-b" id="contact">
-        <h3>[contact]</h3>
-        <p class="muted mono" style="margin-bottom:10px;">Buenos Aires, Argentina</p>
-
-        <!-- Poné tus datos reales -->
-        <p class="muted">Email:</p>
-        <p class="mono" style="margin:6px 0 12px;">
-          <a href="mailto:armando@dooplerstudio.com.ar">armando@dooplerstudio.com.ar</a>
-        </p>
-
-        <p class="muted">Phone:</p>
-        <p class="mono" style="margin:6px 0 12px;">
-          <a href="tel:+5491165598444">+54 9 11 6559 8444</a>
-        </p>
-
-        <p class="muted">Site:</p>
-        <p class="mono" style="margin:6px 0 0;">
-          <a href="https://armando-army.github.io/armandofrezzedurand/" target="_blank" rel="noreferrer">
-            armando-army.github.io/armandofrezzedurand
+      <div class="cols">
+        <div class="box">
+          <h3>Portfolio</h3>
+          <p>Descargá el PDF con selección de obra física y proyectos audiovisuales.</p>
+          <!-- Subí el archivo al repo como portfolio.pdf o cambiá el nombre acá -->
+          <a class="btn" href="portfolio.pdf" download>
+            Descargar PDF <span class="arrow">→</span>
           </a>
-        </p>
+        </div>
+
+        <div class="box" id="contact">
+          <h3>Contact</h3>
+          <p><span style="color:rgba(255,106,0,.9)">Buenos Aires, Argentina</span></p>
+          <p style="margin-top:12px;">
+            Email: <a href="mailto:armando@dooplerstudio.com.ar">armando@dooplerstudio.com.ar</a><br/>
+            Tel: <a href="tel:+5491165598444">+54 9 11 6559 8444</a><br/>
+            Site: <a href="https://armando-army.github.io/armandofrezzedurand/" target="_blank" rel="noreferrer">armando-army.github.io/armandofrezzedurand</a>
+          </p>
+        </div>
       </div>
     </div>
-  </div>
-</section>
+  </section>
+
+</main>
 
 <footer>
   <div class="wrap">
-    © <span id="year"></span> Armando Frezze Durand · <span style="color:rgba(255,106,0,.95)">orange</span> as false modernity / space-age trace
+    © <span id="year"></span> Armando Frezze Durand · palette: black / white / orange · stacking panels
   </div>
 </footer>
 
-<!-- MODAL -->
+<!-- Modal (click works) -->
 <div class="modal" id="modal" aria-hidden="true">
   <div class="modal-box" role="dialog" aria-modal="true">
     <div class="modal-top">
@@ -626,7 +496,6 @@
 <script>
   document.getElementById("year").textContent = new Date().getFullYear();
 
-  // modal viewer
   const modal = document.getElementById("modal");
   const modalImg = document.getElementById("modalImg");
   const modalTitle = document.getElementById("modalTitle");
@@ -651,7 +520,7 @@
   window.addEventListener("keydown", (e) => { if(e.key === "Escape") closeModal(); });
 </script>
 
-<!-- HERO: THREE + ASCII OBJ -->
+<!-- HERO ASCII OBJ (FRANCO_LowPoly.obj rotating) -->
 <script type="module">
   import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
   import { OBJLoader } from "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/OBJLoader.js";
@@ -659,39 +528,39 @@
 
   const mount = document.getElementById("asciiMount");
 
-  // ✅ URL RAW correcta (sin refs/heads)
+  // ✅ RAW correcta (sin refs/heads)
   const OBJ_URL = "https://raw.githubusercontent.com/armando-army/armandofrezzedurand/main/FRANCO_LowPoly.obj";
 
   const scene = new THREE.Scene();
   scene.background = null;
 
   const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 5000);
-  camera.position.set(0, 1.2, 4.6);
+  camera.position.set(0, 1.15, 4.7);
 
   const renderer = new THREE.WebGLRenderer({ alpha:true, antialias:true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
   const effect = new AsciiEffect(renderer, " .:-=+*#%@", { invert:true });
   Object.assign(effect.domElement.style, {
-    position: "absolute",
-    inset: "0",
-    width: "100%",
-    height: "100%",
-    color: "rgba(255,255,255,.88)",
-    backgroundColor: "transparent",
+    position:"absolute",
+    inset:"0",
+    width:"100%",
+    height:"100%",
+    color:"rgba(243,243,243,.85)",
+    backgroundColor:"transparent",
     fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
-    fontSize: "9px",
-    lineHeight: "9px",
-    letterSpacing: "1px",
-    whiteSpace: "pre",
-    userSelect: "none"
+    fontSize:"10px",
+    lineHeight:"10px",
+    letterSpacing:"1px",
+    whiteSpace:"pre",
+    userSelect:"none",
   });
 
   mount.innerHTML = "";
   mount.appendChild(effect.domElement);
 
-  // Lights (clave para que el ASCII “lea” volumen)
-  const key = new THREE.DirectionalLight(0xffffff, 1.2);
+  // lights
+  const key = new THREE.DirectionalLight(0xffffff, 1.25);
   key.position.set(4, 6, 3);
   scene.add(key);
 
@@ -704,10 +573,14 @@
   const group = new THREE.Group();
   scene.add(group);
 
+  let loaded = false;
+
   const loader = new OBJLoader();
   loader.load(
     OBJ_URL,
     (obj) => {
+      loaded = true;
+
       obj.traverse((child) => {
         if (child.isMesh) {
           child.material = new THREE.MeshStandardMaterial({
@@ -728,16 +601,14 @@
       obj.position.sub(center);
 
       const maxDim = Math.max(size.x, size.y, size.z) || 1;
-      obj.scale.setScalar(2.2 / maxDim);
+      obj.scale.setScalar(2.25 / maxDim);
 
       obj.position.y += 0.05;
+
       group.add(obj);
     },
     undefined,
-    (err) => {
-      console.error("OBJ load error:", err);
-      // si querés, acá podés poner un fallback visual
-    }
+    (err) => console.error("OBJ load error:", err)
   );
 
   function resize(){
@@ -753,8 +624,12 @@
 
   function animate(){
     requestAnimationFrame(animate);
-    group.rotation.y += 0.004;
-    group.rotation.x = -0.08;
+
+    if(loaded){
+      group.rotation.y += 0.004;
+      group.rotation.x = -0.08;
+    }
+
     effect.render(scene, camera);
   }
   animate();
